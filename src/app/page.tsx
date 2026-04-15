@@ -1,65 +1,77 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useMemo } from "react";
+import { MoonDisplay } from "@/components/MoonDisplay";
+import { IlluminationMeter } from "@/components/IlluminationMeter";
+import { FullMoonCountdown } from "@/components/FullMoonCountdown";
+import { useMoonDays } from "@/hooks/useMoonDays";
+import {
+  activityHint,
+  DAY_MS,
+  nextFullMoon,
+  SYNODIC_MONTH,
+  todayIso,
+} from "@/lib/moon";
+
+const timeFmt = new Intl.DateTimeFormat(undefined, {
+  hour: "numeric",
+  minute: "2-digit",
+});
+
+export default function HomePage() {
+  const today = useMemo(() => todayIso(), []);
+  const dates = useMemo(() => [new Date()], []);
+  const { days, loading } = useMoonDays({
+    scope: "day",
+    id: today,
+    dates,
+    ttlMs: DAY_MS,
+  });
+  const data = days[0] ?? null;
+  const nextFull = useMemo(() => nextFullMoon(new Date()), []);
+  const phase01 = data ? data.age / SYNODIC_MONTH : 0;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <section className="flex-1 flex flex-col items-center justify-center px-6 pt-12 pb-8 gap-8 fade-in">
+      <header className="flex flex-col items-center gap-1">
+        <span className="text-xs uppercase tracking-[0.25em] text-muted">Tonight</span>
+        <h1 className="text-2xl font-medium text-foreground">
+          {data?.phase ?? (loading ? "…" : "—")}
+        </h1>
+      </header>
+
+      <div className="moon-float">
+        <MoonDisplay phase={phase01} illumination={data?.illumination ?? 0} size={260} />
+      </div>
+
+      <p className="text-center text-sm text-muted max-w-xs italic">
+        {data ? activityHint(data.illumination) : "Looking up tonight's sky…"}
+      </p>
+
+      {data && <IlluminationMeter value={data.illumination} />}
+
+      {(data?.moonrise || data?.moonset) && (
+        <div className="flex gap-6 text-sm text-muted">
+          {data.moonrise && (
+            <div>
+              <span className="uppercase tracking-widest text-[10px] mr-2">Rise</span>
+              <span className="text-foreground/80">{timeFmt.format(new Date(data.moonrise))}</span>
+            </div>
+          )}
+          {data.moonset && (
+            <div>
+              <span className="uppercase tracking-widest text-[10px] mr-2">Set</span>
+              <span className="text-foreground/80">{timeFmt.format(new Date(data.moonset))}</span>
+            </div>
+          )}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      )}
+
+      <FullMoonCountdown next={nextFull} />
+
+      {data?.source === "suncalc" && (
+        <p className="text-[10px] text-muted/70 mt-2">offline · local estimate</p>
+      )}
+    </section>
   );
 }
