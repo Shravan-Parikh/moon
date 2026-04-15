@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { MoonCalendar } from "@/components/MoonCalendar";
 import { useMoonDays } from "@/hooks/useMoonDays";
+import { useMounted } from "@/hooks/useMounted";
 import { datesForMonth, todayIso, type MoonData } from "@/lib/moon";
 
 const MONTH_TTL_MS = 1000 * 60 * 60 * 6;
@@ -23,8 +24,11 @@ function monthKey(d: Date): string {
 }
 
 export default function CalendarPage() {
+  const mounted = useMounted();
   const [anchor, setAnchor] = useState(() => new Date());
   const month = monthKey(anchor);
+
+  if (!mounted) return <CalendarSkeleton />;
 
   return (
     <section className="flex-1 flex flex-col px-4 pt-12 pb-8 gap-6 fade-in">
@@ -74,6 +78,23 @@ function CalendarMonth({ anchor, month }: { anchor: Date; month: string }) {
       </div>
       <FullMoonsThisMonth days={days} />
     </>
+  );
+}
+
+function CalendarSkeleton() {
+  return (
+    <section className="flex-1 flex flex-col px-4 pt-12 pb-8 gap-6">
+      <div className="max-w-md mx-auto w-full flex items-center justify-between">
+        <div className="h-4 w-4 rounded bg-white/5" />
+        <div className="h-4 w-40 rounded bg-white/5" />
+        <div className="h-4 w-4 rounded bg-white/5" />
+      </div>
+      <div className="flex gap-3 py-2 overflow-hidden">
+        {Array.from({ length: 7 }).map((_, i) => (
+          <div key={i} className="shrink-0 w-20 h-24 rounded-2xl bg-white/[0.02]" />
+        ))}
+      </div>
+    </section>
   );
 }
 
