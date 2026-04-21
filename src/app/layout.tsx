@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
+import { DynamicFavicon } from "@/components/DynamicFavicon";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 
 const geistSans = Geist({
@@ -18,15 +19,16 @@ export const metadata: Metadata = {
   title: "MoonPulse",
   description:
     "A minimal moon-phase tracker. Glance at tonight's moon, the next full moon, and the month ahead.",
-  manifest: "/manifest.json",
+  manifest: "/api/manifest",
   appleWebApp: {
     capable: true,
     title: "MoonPulse",
     statusBarStyle: "black-translucent",
   },
   icons: {
-    icon: "/icon.svg",
-    apple: "/apple-touch-icon.png",
+    // Static fallback — DynamicFavicon swaps in the phase-specific icon at runtime.
+    icon: "/icons/full-moon.svg",
+    apple: "/icons/full-moon-192.png",
   },
 };
 
@@ -58,6 +60,7 @@ export default function RootLayout({
             Calendar
           </Link>
         </nav>
+        <DynamicFavicon />
         <ServiceWorkerRegister />
       </body>
     </html>

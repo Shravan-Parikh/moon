@@ -1,7 +1,7 @@
 // MoonPulse minimal offline service worker
 // Strategy: cache-first for static app shell, network-first for FarmSense API.
-const CACHE = "moonpulse-v1";
-const SHELL = ["/", "/calendar", "/manifest.json", "/icon.svg"];
+const CACHE = "moonpulse-v2";
+const SHELL = ["/", "/calendar"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
